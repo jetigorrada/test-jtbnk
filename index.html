@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jet Bank</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1a1a2e; }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo { font-size: 1.6rem; font-weight: 700; letter-spacing: 1px; }
+        .logo span { color: #00d2ff; }
+        nav a { color: #ccc; text-decoration: none; margin-left: 28px; font-size: 0.95rem; transition: color .2s; }
+        nav a:hover { color: #00d2ff; }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #fff;
+            text-align: center;
+            padding: 100px 20px 120px;
+        }
+        .hero h1 { font-size: 3rem; margin-bottom: 16px; }
+        .hero h1 span { color: #00d2ff; }
+        .hero p { font-size: 1.15rem; max-width: 600px; margin: 0 auto 32px; color: #b8b8d0; }
+        .btn {
+            display: inline-block;
+            padding: 14px 36px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: .3s;
+        }
+        .btn-primary { background: #00d2ff; color: #0f0c29; }
+        .btn-primary:hover { background: #00b8e6; }
+        .btn-outline { border: 2px solid #00d2ff; color: #00d2ff; margin-left: 12px; }
+        .btn-outline:hover { background: #00d2ff; color: #0f0c29; }
+
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 32px;
+            max-width: 1100px;
+            margin: -60px auto 60px;
+            padding: 0 20px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 36px 28px;
+            box-shadow: 0 8px 30px rgba(0,0,0,.08);
+            text-align: center;
+            transition: transform .25s;
+        }
+        .card:hover { transform: translateY(-6px); }
+        .card .icon { font-size: 2.4rem; margin-bottom: 16px; }
+        .card h3 { margin-bottom: 10px; }
+        .card p { color: #666; font-size: 0.95rem; line-height: 1.6; }
+
+        /* About */
+        .about {
+            background: #f5f7fa;
+            padding: 80px 20px;
+            text-align: center;
+        }
+        .about h2 { font-size: 2rem; margin-bottom: 16px; }
+        .about p { max-width: 700px; margin: 0 auto; color: #555; line-height: 1.7; }
+
+        /* Rates */
+        .rates {
+            max-width: 900px;
+            margin: 60px auto;
+            padding: 0 20px;
+            text-align: center;
+        }
+        .rates h2 { font-size: 2rem; margin-bottom: 32px; }
+        .rates table {
+            width: 100%;
+            border-collapse: collapse;
+            box-shadow: 0 4px 20px rgba(0,0,0,.06);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .rates th, .rates td { padding: 16px 24px; text-align: left; }
+        .rates th { background: #302b63; color: #fff; }
+        .rates tr:nth-child(even) { background: #f5f7fa; }
+
+        /* Footer */
+        footer {
+            background: #0f0c29;
+            color: #999;
+            text-align: center;
+            padding: 32px 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+
+    <!-- Genesys Web Messenger -->
+    <script type="text/javascript" charset="utf-8">
+        (function (g, e, n, es, ys) {
+            g['_genesysJs'] = e;
+            g[e] = g[e] || function () {
+                (g[e].q = g[e].q || []).push(arguments)
+            };
+            g[e].t = 1 * new Date();
+            g[e].c = es;
+            ys = document.createElement('script');
+            ys.async = 1;
+            ys.src = n;
+            ys.charset = 'utf-8';
+            document.head.appendChild(ys);
+        })(window, 'Genesys', 'https://apps.euc2.pure.cloud/genesys-bootstrap/genesys.min.js', {
+            environment: 'prod-euc2',
+            deploymentId: '2eb4a794-2ced-46cb-b175-64dd065ce1a1'
+        });
+    </script>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Jet<span>Bank</span></div>
+        <nav>
+            <a href="#features">Services</a>
+            <a href="#about">About</a>
+            <a href="#rates">Rates</a>
+            <a href="#contact">Contact</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Banking at <span>Jet Speed</span></h1>
+        <p>Experience lightning-fast digital banking with zero hidden fees, competitive rates, and 24/7 support.</p>
+        <a href="#" class="btn btn-primary">Open an Account</a>
+        <a href="#" class="btn btn-outline">Learn More</a>
+    </section>
+
+    <section class="features" id="features">
+        <div class="card">
+            <div class="icon">💳</div>
+            <h3>Smart Cards</h3>
+            <p>Contactless payments, instant virtual cards, and real-time spending notifications right on your phone.</p>
+        </div>
+        <div class="card">
+            <div class="icon">🔒</div>
+            <h3>Secure Transfers</h3>
+            <p>Bank-grade encryption protects every transaction. Send money domestically or internationally in seconds.</p>
+        </div>
+        <div class="card">
+            <div class="icon">📊</div>
+            <h3>Savings Goals</h3>
+            <p>Set personalised savings goals and watch your money grow with our competitive interest rates.</p>
+        </div>
+    </section>
+
+    <section class="about" id="about">
+        <h2>Why Jet Bank?</h2>
+        <p>Founded in 2022, Jet Bank was built for people who want modern, transparent, and fast banking. No branches, no queues — just a powerful app and a team that's always here to help. We're fully regulated, FDIC-insured, and trusted by over 500,000 customers worldwide.</p>
+    </section>
+
+    <section class="rates" id="rates">
+        <h2>Current Rates</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Account Type</th>
+                    <th>Interest Rate (APY)</th>
+                    <th>Min. Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Everyday Checking</td><td>0.50%</td><td>$0</td></tr>
+                <tr><td>High-Yield Savings</td><td>4.25%</td><td>$0</td></tr>
+                <tr><td>12-Month CD</td><td>4.75%</td><td>$500</td></tr>
+                <tr><td>Business Checking</td><td>0.30%</td><td>$0</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <footer id="contact">
+        <p>&copy; 2026 Jet Bank. All rights reserved. &nbsp;|&nbsp; support@jetbank.com &nbsp;|&nbsp; 1-800-JET-BANK</p>
+    </footer>
+
+</body>
+</html>
