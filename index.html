@@ -107,19 +107,70 @@
     </style>
 
     <!-- Genesys Web Messenger -->
- <script type="text/javascript" charset="utf-8">
-  (function (g, e, n, es, ys) {
-    g['_genesysJs'] = e;
-    g[e] = g[e] || function () {
-      (g[e].q = g[e].q || []).push(arguments)
-    };
-    g[e].t = 1 * new Date();
-    g[e].c = es;
-    ys = document.createElement('script'); ys.async = 1; ys.src = n; ys.charset = 'utf-8'; document.head.appendChild(ys);
-  })(window, 'Genesys', 'https://apps.euc2.pure.cloud/genesys-bootstrap/genesys.min.js', {
-    environment: 'prod-euc2',
-    deploymentId: '2eb4a794-2ced-46cb-b175-64dd065ce1a1'
-  });
+ <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+(function() {
+  const API_URL = "http://187.124.1.193:3080/api/klient/chat";
+  const API_KEY = "sk-FKr9gJTCOM7ghMlRvWzdJzaboxcIffGNUt34PLFYDoY";
+
+  // Create chat HTML elements
+  const html = `
+    <style>
+      #ai-chat-btn { position:fixed; bottom:20px; right:20px; width:60px; height:60px; border-radius:50%; background:#1a73e8; color:#fff; border:none; cursor:pointer; font-size:28px; box-shadow:0 4px 12px rgba(0,0,0,.2); z-index:9999; }
+      #ai-chat-box { display:none; position:fixed; bottom:90px; right:20px; width:350px; height:500px; border-radius:12px; background:#fff; box-shadow:0 4px 20px rgba(0,0,0,.15); z-index:9999; flex-direction:column; font-family:Arial,sans-serif; }
+      #ai-chat-header { background:#1a73e8; color:#fff; padding:15px; border-radius:12px 12px 0 0; font-weight:bold; }
+      #ai-chat-msgs { flex:1; overflow-y:auto; padding:10px; font-size:14px; }
+      #ai-chat-input { display:flex; padding:10px; border-top:1px solid #ddd; }
+      #ai-chat-input input { flex:1; border:1px solid #ddd; border-radius:20px; padding:8px 12px; outline:none; }
+      #ai-chat-input button { margin-left:8px; background:#1a73e8; color:#fff; border:none; border-radius:20px; padding:8px 16px; cursor:pointer; }
+      .msg { margin:8px 0; padding:8px 12px; border-radius:12px; max-width:80%; word-wrap:break-word; }
+      .msg.user { background:#e3f2fd; margin-left:auto; }
+      .msg.bot { background:#f5f5f5; }
+    </style>
+    <button id="ai-chat-btn">💬</button>
+    <div id="ai-chat-box">
+      <div id="ai-chat-header">Asistenti Digjital</div>
+      <div id="ai-chat-msgs"><div class="msg bot">Përshëndetje!Une jam Jet Bank. Si mund t'ju ndihmoj?</div></div>
+      <div id="ai-chat-input"><input id="ai-input" placeholder="Shkruani..."><button id="ai-send">→</button></div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', html);
+
+  const btn = document.getElementById('ai-chat-btn');
+  const box = document.getElementById('ai-chat-box');
+  const msgs = document.getElementById('ai-chat-msgs');
+  const input = document.getElementById('ai-input');
+  const send = document.getElementById('ai-send');
+
+  btn.onclick = () => { box.style.display = box.style.display === 'flex' ? 'none' : 'flex'; };
+
+  async function ask(text) {
+    msgs.innerHTML += `<div class="msg user">${text.replace(/</g,'&lt;')}</div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+
+    const loading = msgs.innerHTML += `<div class="msg bot" id="loading">⏳ Duke shkruar...</div>`;
+
+    try {
+      const resp = await fetch(API_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','Authorization':'Bearer '+API_KEY},
+        body: JSON.stringify({model:'Klient',messages:[{role:'user',content:text}],stream:false})
+      });
+      const data = await resp.json();
+      const answer = data.choices?.[0]?.message?.content || 'Nuk mora përgjigje.';
+      document.getElementById('loading')?.remove();
+      msgs.innerHTML += `<div class="msg bot">${answer.replace(/\n/g,'<br>')}</div>`;
+      msgs.scrollTop = msgs.scrollHeight;
+    } catch(e) {
+      document.getElementById('loading')?.remove();
+      msgs.innerHTML += `<div class="msg bot">Gabim: ${e.message}</div>`;
+    }
+  }
+
+  send.onclick = () => { const t=input.value.trim(); if(t){input.value=''; ask(t);} };
+  input.onkeydown = (e) => { if(e.key==='Enter') send.click(); };
+})();
 </script>
 </head>
 <body>
