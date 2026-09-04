@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Locked · Jet Bank Embed Tester</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      padding: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,.06);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 18px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+    }
+    .logo { font-size: 1.8rem; font-weight: 700; margin-bottom: 6px; letter-spacing: 1px; }
+    .logo span { color: #00d2ff; }
+    .sub { color: #b8b8d0; font-size: .9rem; margin-bottom: 28px; }
+    .lock { font-size: 2.4rem; margin-bottom: 18px; }
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.25);
+      color: #fff;
+      font-size: 1.4rem;
+      text-align: center;
+      letter-spacing: 8px;
+      outline: none;
+      margin-bottom: 16px;
+    }
+    input:focus { border-color: #00d2ff; }
+    button {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 12px;
+      background: #00d2ff;
+      color: #0f0c29;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .2s;
+    }
+    button:hover { background: #00b8e6; }
+    .err { color: #ff6b6b; font-size: .85rem; min-height: 20px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <form class="card" id="form">
+    <div class="lock">🔒</div>
+    <div class="logo">Jet<span>Bank</span></div>
+    <div class="sub">Enter your PIN to unlock the embed tester</div>
+    <input id="pin" type="password" inputmode="numeric" autocomplete="off"
+           maxlength="12" placeholder="••••" autofocus />
+    <button type="submit">Unlock</button>
+    <div class="err" id="err"></div>
+  </form>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const next = params.get('next') || '/';
+    const form = document.getElementById('form');
+    const pin = document.getElementById('pin');
+    const err = document.getElementById('err');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      err.textContent = '';
+      try {
+        const resp = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin: pin.value }),
+        });
+        if (resp.ok) {
+          location.href = next.startsWith('/') ? next : '/';
+        } else {
+          const data = await resp.json().catch(() => ({}));
+          err.textContent = data.error || 'Wrong PIN';
+          pin.value = '';
+          pin.focus();
+        }
+      } catch (e2) {
+        err.textContent = 'Network error';
+      }
+    });
+  </script>
+</body>
+</html>

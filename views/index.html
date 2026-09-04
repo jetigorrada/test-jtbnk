@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Embed Tester · Jet Bank</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1a1a2e; background: #eef1f6; }
+
+    header {
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #fff; padding: 14px 28px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .logo { font-size: 1.4rem; font-weight: 700; letter-spacing: 1px; }
+    .logo span { color: #00d2ff; }
+    header .right { display: flex; align-items: center; gap: 14px; }
+    header select {
+      padding: 9px 12px; border-radius: 8px; border: none; font-size: .95rem; min-width: 200px;
+    }
+    .btn {
+      padding: 9px 16px; border-radius: 8px; border: none; cursor: pointer;
+      font-size: .9rem; font-weight: 600; transition: .2s; text-decoration: none; display: inline-block;
+    }
+    .btn-primary { background: #00d2ff; color: #0f0c29; }
+    .btn-primary:hover { background: #00b8e6; }
+    .btn-ghost { background: rgba(255,255,255,.12); color: #fff; }
+    .btn-ghost:hover { background: rgba(255,255,255,.22); }
+
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 24px 20px 60px; }
+    .bar {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+    }
+    .meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .pill {
+      background: #302b63; color: #fff; font-size: .75rem; font-weight: 600;
+      padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: .5px;
+    }
+    .name { font-size: 1.25rem; font-weight: 700; }
+
+    .stage {
+      background: #fff; border-radius: 14px; box-shadow: 0 8px 30px rgba(0,0,0,.08);
+      min-height: 560px; position: relative; overflow: hidden;
+    }
+    .stage iframe { width: 100%; height: 620px; border: 0; display: block; }
+    #inlineHost { position: relative; min-height: 560px; padding: 20px; }
+
+    .empty {
+      text-align: center; color: #888; padding: 120px 20px;
+    }
+    .empty h2 { color: #444; margin-bottom: 10px; }
+    .empty a { color: #007bbf; }
+
+    details.code {
+      margin-top: 18px; background: #fff; border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.06); padding: 6px 18px;
+    }
+    details.code summary { cursor: pointer; font-weight: 600; padding: 12px 0; }
+    pre {
+      background: #0f0c29; color: #d7e3ff; padding: 16px; border-radius: 10px;
+      overflow: auto; font-size: .82rem; line-height: 1.5; margin-bottom: 14px;
+      white-space: pre-wrap; word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">Jet<span>Bank</span> · Embed Tester</div>
+    <div class="right">
+      <select id="picker"></select>
+      <button class="btn btn-primary" id="reload">Reload</button>
+      <button class="btn btn-ghost" id="logout">Lock</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="bar">
+      <div class="meta">
+        <span class="name" id="name">—</span>
+        <span class="pill" id="mode" style="display:none"></span>
+      </div>
+    </div>
+
+    <div class="stage" id="stage">
+      <div class="empty" id="empty">
+        <h2>No embed selected</h2>
+        <p>Add a chatbox embed in the hidden <b>/settings</b> page, then pick it above.</p>
+      </div>
+    </div>
+
+    <details class="code" id="codeWrap" style="display:none">
+      <summary>View embed code</summary>
+      <pre id="codeView"></pre>
+    </details>
+  </div>
+
+  <script>
+    const picker = document.getElementById('picker');
+    const stage = document.getElementById('stage');
+    const empty = document.getElementById('empty');
+    const nameEl = document.getElementById('name');
+    const modeEl = document.getElementById('mode');
+    const codeWrap = document.getElementById('codeWrap');
+    const codeView = document.getElementById('codeView');
+
+    let config = { embeds: [], activeId: null };
+
+    document.getElementById('logout').onclick = async () => {
+      await fetch('/api/logout', { method: 'POST' });
+      location.href = '/login';
+    };
+    document.getElementById('reload').onclick = () => render(picker.value);
+
+    function clearStage() {
+      stage.innerHTML = '';
+    }
+
+    // Renders an embed using the appropriate technique for its mode so that
+    // scripts, iframes and external widgets all work.
+    function render(id) {
+      const embed = config.embeds.find((e) => e.id === id);
+      clearStage();
+      if (!embed) {
+        stage.appendChild(empty);
+        empty.style.display = '';
+        nameEl.textContent = '—';
+        modeEl.style.display = 'none';
+        codeWrap.style.display = 'none';
+        return;
+      }
+
+      nameEl.textContent = embed.name;
+      modeEl.textContent = embed.mode;
+      modeEl.style.display = '';
+      codeView.textContent = embed.code;
+      codeWrap.style.display = '';
+
+      if (embed.mode === 'iframe-url') {
+        const f = document.createElement('iframe');
+        f.src = embed.code.trim();
+        f.setAttribute('allow', 'clipboard-write; microphone; camera');
+        stage.appendChild(f);
+        return;
+      }
+
+      if (embed.mode === 'sandbox') {
+        // Full isolated document. Best for arbitrary chat widget snippets.
+        const f = document.createElement('iframe');
+        f.setAttribute('allow', 'clipboard-write; microphone; camera');
+        f.srcdoc =
+          '<!doctype html><html><head><meta charset="utf-8">' +
+          '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+          '<style>html,body{margin:0;height:100%;font-family:Segoe UI,Arial,sans-serif;}</style>' +
+          '</head><body>' + embed.code + '</body></html>';
+        stage.appendChild(f);
+        return;
+      }
+
+      // inline + script-url both inject into the live page.
+      const host = document.createElement('div');
+      host.id = 'inlineHost';
+      stage.appendChild(host);
+
+      if (embed.mode === 'script-url') {
+        const s = document.createElement('script');
+        s.src = embed.code.trim();
+        s.async = true;
+        host.appendChild(s);
+        return;
+      }
+
+      // mode === 'inline': parse HTML and re-create scripts so they execute.
+      const tmp = document.createElement('div');
+      tmp.innerHTML = embed.code;
+      Array.from(tmp.childNodes).forEach((n) => host.appendChild(n));
+      host.querySelectorAll('script').forEach((old) => {
+        const s = document.createElement('script');
+        Array.from(old.attributes).forEach((a) => s.setAttribute(a.name, a.value));
+        s.textContent = old.textContent;
+        old.replaceWith(s);
+      });
+    }
+
+    function fillPicker() {
+      picker.innerHTML = '';
+      if (!config.embeds.length) {
+        const o = document.createElement('option');
+        o.textContent = 'No embeds saved yet';
+        o.value = '';
+        picker.appendChild(o);
+        picker.disabled = true;
+        return;
+      }
+      picker.disabled = false;
+      config.embeds.forEach((e) => {
+        const o = document.createElement('option');
+        o.value = e.id;
+        o.textContent = e.name + '  (' + e.mode + ')';
+        picker.appendChild(o);
+      });
+      picker.value = config.activeId || config.embeds[0].id;
+    }
+
+    picker.onchange = () => render(picker.value);
+
+    async function load() {
+      const resp = await fetch('/api/embeds');
+      if (resp.status === 401) { location.href = '/login'; return; }
+      config = await resp.json();
+      fillPicker();
+      render(picker.value);
+    }
+
+    load();
+  </script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings · Embed Tester</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1a1a2e; background: #eef1f6; }
+
+    header {
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #fff; padding: 14px 28px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .logo { font-size: 1.4rem; font-weight: 700; letter-spacing: 1px; }
+    .logo span { color: #00d2ff; }
+    header .right { display: flex; gap: 10px; }
+    .btn {
+      padding: 9px 16px; border-radius: 8px; border: none; cursor: pointer;
+      font-size: .9rem; font-weight: 600; transition: .2s; text-decoration: none; display: inline-block;
+    }
+    .btn-primary { background: #00d2ff; color: #0f0c29; }
+    .btn-primary:hover { background: #00b8e6; }
+    .btn-ghost { background: rgba(255,255,255,.12); color: #fff; }
+    .btn-ghost:hover { background: rgba(255,255,255,.22); }
+    .btn-add { background: #302b63; color: #fff; }
+    .btn-del { background: #ffe3e3; color: #c0392b; }
+
+    .wrap { max-width: 1000px; margin: 0 auto; padding: 24px 20px 80px; }
+    .hint { color: #666; font-size: .9rem; margin-bottom: 18px; line-height: 1.6; }
+    .hint code { background: #dfe4ee; padding: 2px 6px; border-radius: 5px; }
+
+    .embed {
+      background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.06);
+      padding: 18px; margin-bottom: 16px;
+    }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+    .row label { font-size: .8rem; font-weight: 600; color: #555; display: block; margin-bottom: 4px; }
+    .grow { flex: 1; min-width: 200px; }
+    input[type="text"], select, textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid #d3d9e3; border-radius: 8px;
+      font-size: .92rem; font-family: inherit; outline: none;
+    }
+    input[type="text"]:focus, select:focus, textarea:focus { border-color: #00d2ff; }
+    textarea { min-height: 150px; font-family: 'Consolas', monospace; font-size: .82rem; resize: vertical; }
+    .active-wrap { display: flex; align-items: center; gap: 6px; font-size: .85rem; color: #333; }
+
+    .foot {
+      position: sticky; bottom: 0; background: #eef1f6; padding: 16px 0;
+      display: flex; gap: 12px; align-items: center; border-top: 1px solid #dde3ec; margin-top: 8px;
+    }
+    #status { font-size: .9rem; color: #2e7d32; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">Jet<span>Bank</span> · Settings</div>
+    <div class="right">
+      <a class="btn btn-ghost" href="/">Open Test Page</a>
+      <button class="btn btn-ghost" id="logout">Lock</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <p class="hint">
+      Save one or more chatbox embed snippets. Pick a <b>render mode</b> so it works no matter how the widget is delivered:<br>
+      • <code>sandbox</code> — pastes any HTML/JS snippet into an isolated iframe (best default, safest). <br>
+      • <code>inline</code> — injects the snippet directly into the live page (use if the widget must attach to the real page body). <br>
+      • <code>iframe-url</code> — the code field is just a URL loaded in an <code>&lt;iframe&gt;</code>. <br>
+      • <code>script-url</code> — the code field is just a URL loaded as an external <code>&lt;script src&gt;</code>.
+    </p>
+
+    <div id="list"></div>
+
+    <button class="btn btn-add" id="add">+ Add embed</button>
+
+    <div class="foot">
+      <button class="btn btn-primary" id="save">Save all</button>
+      <span id="status"></span>
+    </div>
+  </div>
+
+  <script>
+    let embeds = [];
+    let activeId = null;
+
+    const listEl = document.getElementById('list');
+    const statusEl = document.getElementById('status');
+
+    function uid() {
+      return Math.random().toString(16).slice(2, 10);
+    }
+
+    function esc(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    const MODES = ['sandbox', 'inline', 'iframe-url', 'script-url'];
+
+    function cardHtml(e) {
+      const opts = MODES.map((m) =>
+        `<option value="${m}" ${e.mode === m ? 'selected' : ''}>${m}</option>`).join('');
+      return `
+        <div class="embed" data-id="${e.id}">
+          <div class="row">
+            <div class="grow">
+              <label>Name</label>
+              <input type="text" class="f-name" value="${esc(e.name)}" placeholder="e.g. LibreChat widget" />
+            </div>
+            <div style="width:180px">
+              <label>Render mode</label>
+              <select class="f-mode">${opts}</select>
+            </div>
+            <div class="active-wrap" style="margin-top:18px">
+              <input type="radio" name="active" class="f-active" ${activeId === e.id ? 'checked' : ''} />
+              <span>Show on test page by default</span>
+            </div>
+          </div>
+          <div class="row">
+            <div class="grow">
+              <label>Embed code / URL</label>
+              <textarea class="f-code" placeholder="Paste your chatbox embed snippet or URL here...">${esc(e.code)}</textarea>
+            </div>
+          </div>
+          <button class="btn btn-del f-del">Delete</button>
+        </div>`;
+    }
+
+    function render() {
+      if (!embeds.length) {
+        listEl.innerHTML = '<p class="hint">No embeds yet. Click “Add embed”.</p>';
+        return;
+      }
+      listEl.innerHTML = embeds.map(cardHtml).join('');
+      listEl.querySelectorAll('.embed').forEach((card) => {
+        const id = card.dataset.id;
+        card.querySelector('.f-del').onclick = () => {
+          embeds = embeds.filter((x) => x.id !== id);
+          if (activeId === id) activeId = embeds[0] ? embeds[0].id : null;
+          render();
+        };
+        card.querySelector('.f-active').onclick = () => { activeId = id; };
+      });
+    }
+
+    function collect() {
+      const cards = Array.from(listEl.querySelectorAll('.embed'));
+      embeds = cards.map((card) => ({
+        id: card.dataset.id,
+        name: card.querySelector('.f-name').value.trim() || 'Untitled',
+        mode: card.querySelector('.f-mode').value,
+        code: card.querySelector('.f-code').value,
+      }));
+      const checked = listEl.querySelector('.f-active:checked');
+      if (checked) activeId = checked.closest('.embed').dataset.id;
+      if (!embeds.find((e) => e.id === activeId)) activeId = embeds[0] ? embeds[0].id : null;
+    }
+
+    document.getElementById('add').onclick = () => {
+      collect();
+      const e = { id: uid(), name: '', mode: 'sandbox', code: '' };
+      embeds.push(e);
+      if (!activeId) activeId = e.id;
+      render();
+    };
+
+    document.getElementById('save').onclick = async () => {
+      collect();
+      statusEl.style.color = '#555';
+      statusEl.textContent = 'Saving...';
+      const resp = await fetch('/api/embeds', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ embeds, activeId }),
+      });
+      if (resp.status === 401) { location.href = '/login'; return; }
+      const cfg = await resp.json();
+      embeds = cfg.embeds; activeId = cfg.activeId;
+      render();
+      statusEl.style.color = '#2e7d32';
+      statusEl.textContent = 'Saved ✓';
+      setTimeout(() => { statusEl.textContent = ''; }, 2500);
+    };
+
+    document.getElementById('logout').onclick = async () => {
+      await fetch('/api/logout', { method: 'POST' });
+      location.href = '/login';
+    };
+
+    async function load() {
+      const resp = await fetch('/api/embeds');
+      if (resp.status === 401) { location.href = '/login'; return; }
+      const cfg = await resp.json();
+      embeds = cfg.embeds || [];
+      activeId = cfg.activeId || (embeds[0] ? embeds[0].id : null);
+      render();
+    }
+
+    load();
+  </script>
+</body>
+</html>
