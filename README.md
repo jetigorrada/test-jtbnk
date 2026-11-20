@@ -1,43 +1,54 @@
-# Jet Bank — Embed Tester
+# Jet Bank — AI Pilot Tester
 
-A tiny PIN-protected web app for testing different chatbox embed codes.
+A small PIN-protected web app for testing chat widgets. It is set up for the
+**Genesys AI pilot**: the Genesys web messenger ("AI Pilot Test" deployment) is
+loaded by default, and testers can log bad answers in a feedback form.
 
-- **Main test page** (`/`) — shows the selected embed and lets you switch between saved ones.
+- **Test page** (`/`) — the active embed, a test guide, and the feedback form.
+- **Feedback export** (`/api/feedback.csv`) — every report as CSV (opens in Excel).
 - **Hidden settings** (`/settings`) — add/edit/delete embed snippets. Not linked from anywhere.
-- **PIN lock** — everything is locked until the correct PIN is entered. Default PIN: **1211**.
+- **PIN lock** — everything is locked until the PIN (`APP_PIN`) is entered.
 
-## Render modes (works with all embed styles)
+## How the AI pilot is wired
 
-When saving an embed you pick how it should be rendered:
+```
+Tester ─▶ this page ─▶ Genesys web messenger (deployment "AI Pilot Test")
+                         └─▶ Architect flow "AI Pilot - Test"
+                               └─▶ Bot Connector "Jet Pilot" ─▶ Laconics (ahk.al)
+                               └─▶ handover / failure ─▶ ACD queue
+```
+
+The messenger only loads on domains allowed in **Genesys Admin → Messenger
+Deployments → AI Pilot Test → Restrict domain access**. After deploying, add
+this app's domain there, or the chat launcher will not appear.
+
+## Render modes
 
 | Mode | Use when the embed is… |
 |------|------------------------|
-| `sandbox` | Any HTML/JS snippet — rendered in an isolated iframe (safest default). |
-| `inline` | A snippet that must attach to the real page body (`document.body...`). |
+| `inline` | A snippet that must run on the real page — **use this for Genesys**. |
+| `sandbox` | Any other HTML/JS snippet, rendered in an isolated iframe. |
 | `iframe-url` | Just a URL to load inside an `<iframe>`. |
 | `script-url` | Just a URL to load as an external `<script src>`. |
-
-A ready-to-paste sample widget is in [`examples/jetbank-chatbot.html`](examples/jetbank-chatbot.html).
 
 ## Run locally
 
 ```bash
 npm install
-npm start
-# open http://localhost:3000  (PIN: 1211)
+APP_PIN=123456 npm start
+# open http://localhost:3000
 ```
+
+The Genesys chat will only show on localhost if `localhost` is an allowed domain on the deployment.
 
 ## Deploy on Coolify
 
-1. Push this repo to GitHub (or your Git provider).
-2. In Coolify: **New Resource → Application → from your Git repo**.
-3. Build pack: **Dockerfile** (auto-detected — a `Dockerfile` is included).
-4. Set the exposed **Port** to `3000`.
-5. **Environment variables** (optional):
-   - `APP_PIN` — override the default PIN (`1211`).
-   - `PORT` — defaults to `3000`.
-6. **Persistent storage** — add a volume so saved embeds survive redeploys:
-   - Mount path: `/app/data`
-7. Deploy. Open the app URL, enter the PIN, then go to `/settings` to add embeds.
+1. **New Resource → Application → from this Git repo**, build pack **Dockerfile**.
+2. Exposed **port**: `3000`.
+3. **Environment variables**:
+   - `APP_PIN` — **required**. If it is missing, a random PIN is generated and printed in the logs.
+   - `GENESYS_DEPLOYMENT_ID`, `GENESYS_ENV` — optional, to point at a different messenger deployment.
+4. **Persistent storage** — mount a volume at `/app/data` so embeds and feedback survive redeploys.
+5. Deploy, then add the app's domain to the Genesys deployment (see above).
 
-> Saved embeds are stored in `/app/data/config.json`. Without a mounted volume they reset on every redeploy.
+Data files on the volume: `config.json` (embeds) and `feedback.jsonl` (tester reports).

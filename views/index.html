@@ -63,6 +63,47 @@
       overflow: auto; font-size: .82rem; line-height: 1.5; margin-bottom: 14px;
       white-space: pre-wrap; word-break: break-word;
     }
+
+    /* inline embeds (e.g. Genesys messenger) float their own launcher, so the stage stays small */
+    .stage.inline-mode { min-height: 0; }
+    .stage.inline-mode #inlineHost { min-height: 0; padding: 16px 20px; color: #555; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.06);
+      padding: 18px 20px;
+    }
+    .card h3 { font-size: 1rem; margin-bottom: 10px; }
+    .card ol, .card ul { padding-left: 20px; line-height: 1.6; font-size: .92rem; }
+    .card table { width: 100%; border-collapse: collapse; font-size: .88rem; margin-top: 8px; }
+    .card td { padding: 6px 4px; border-bottom: 1px solid #eef1f6; vertical-align: top; }
+    .card td:first-child { font-weight: 600; width: 34%; color: #302b63; }
+    .warn { margin-top: 12px; font-size: .85rem; color: #8a5a00; background: #fff6e0; padding: 8px 10px; border-radius: 8px; }
+
+    form.fb label { display: block; font-size: .8rem; font-weight: 600; color: #555; margin: 10px 0 4px; }
+    form.fb input, form.fb textarea, form.fb select {
+      width: 100%; padding: 9px 11px; border: 1px solid #d3d9e3; border-radius: 8px;
+      font-size: .92rem; font-family: inherit;
+    }
+    form.fb textarea { min-height: 70px; resize: vertical; }
+    form.fb .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    form.fb .actions { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+    #fbStatus { font-size: .88rem; }
+    .btn-dark { background: #302b63; color: #fff; }
+    .btn-dark:hover { background: #24204f; }
+
+    .fb-list { margin-top: 18px; }
+    .fb-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .fb-head a { font-size: .88rem; color: #007bbf; }
+    .fb-item { border-top: 1px solid #eef1f6; padding: 10px 0; font-size: .88rem; }
+    .fb-item .top { display: flex; gap: 8px; align-items: center; color: #777; font-size: .78rem; margin-bottom: 4px; }
+    .tag { padding: 2px 8px; border-radius: 12px; font-weight: 600; font-size: .72rem; }
+    .tag.correct, .tag.handover-ok { background: #e3f6e8; color: #1e7b3a; }
+    .tag.partly, .tag.other { background: #fff3d6; color: #8a5a00; }
+    .tag.wrong, .tag.handover-missing { background: #ffe3e3; color: #b3261e; }
+    .fb-item .q { font-weight: 600; }
+    .fb-item .a, .fb-item .n { color: #555; white-space: pre-wrap; }
   </style>
 </head>
 <body>
@@ -90,6 +131,67 @@
       </div>
     </div>
 
+    <div class="grid">
+      <div class="card">
+        <h3>Si te testoni</h3>
+        <ol>
+          <li>Hapni chat-in nga ikona poshte djathtas dhe shkruani si klient.</li>
+          <li>Prisni pergjigjen (5 deri 10 sekonda) para mesazhit tjeter. Mesazhet e derguara njeri pas tjetrit mund te humbasin.</li>
+          <li>Per cdo pergjigje te gabuar, te paplote ose te cuditshme, plotesoni formularin ketu djathtas.</li>
+          <li>Per bisede te re, mbyllni chat-in dhe fshini historikun nga menuja e chat-it.</li>
+        </ol>
+        <table>
+          <tr><td>Produkte</td><td>Kredi, depozita, karta, llogari, transferta, tarifa</td></tr>
+          <tr><td>Pyetje vijuese</td><td>"Si e marr kete?", "Po per EUR?"</td></tr>
+          <tr><td>Anglisht</td><td>"How do I open an account?"</td></tr>
+          <tr><td>Kalim tek agjenti</td><td>"Dua te flas me nje agjent", "Me kane humbur karten", "Kam nje transaksion qe nuk e njoh"</td></tr>
+          <tr><td>Jashte teme</td><td>Pyetje pa lidhje me banken, ose qe kerkojne te dhena personale</td></tr>
+        </table>
+        <div class="warn">Ambient testimi. Mos shkruani te dhena reale klientesh, numra kartash ose fjalekalime.</div>
+      </div>
+
+      <div class="card">
+        <h3>Raporto nje pergjigje</h3>
+        <form class="fb" id="fbForm">
+          <div class="row2">
+            <div>
+              <label for="fbTester">Emri juaj</label>
+              <input id="fbTester" maxlength="80" autocomplete="name" />
+            </div>
+            <div>
+              <label for="fbVerdict">Vleresimi</label>
+              <select id="fbVerdict">
+                <option value="correct">E sakte</option>
+                <option value="partly">Pjeserisht e sakte</option>
+                <option value="wrong" selected>E gabuar</option>
+                <option value="handover-ok">Kaloi tek agjenti sic duhej</option>
+                <option value="handover-missing">Duhej te kalonte tek agjenti</option>
+                <option value="other">Tjeter</option>
+              </select>
+            </div>
+          </div>
+          <label for="fbQuestion">Pyetja qe shkruat</label>
+          <textarea id="fbQuestion" maxlength="2000"></textarea>
+          <label for="fbAnswer">Pergjigjja e bot-it</label>
+          <textarea id="fbAnswer" maxlength="4000"></textarea>
+          <label for="fbNote">Shenim (cfare duhej te thoshte)</label>
+          <textarea id="fbNote" maxlength="2000"></textarea>
+          <div class="actions">
+            <button class="btn btn-dark" type="submit">Ruaj</button>
+            <span id="fbStatus"></span>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card fb-list">
+      <div class="fb-head">
+        <h3>Raportet e fundit</h3>
+        <a href="/api/feedback.csv">Shkarko CSV</a>
+      </div>
+      <div id="fbList"><p style="color:#888;font-size:.9rem">Asnje raport ende.</p></div>
+    </div>
+
     <details class="code" id="codeWrap" style="display:none">
       <summary>View embed code</summary>
       <pre id="codeView"></pre>
@@ -115,6 +217,7 @@
 
     function clearStage() {
       stage.innerHTML = '';
+      stage.classList.remove('inline-mode');
     }
 
     // Renders an embed using the appropriate technique for its mode so that
@@ -161,6 +264,12 @@
       // inline + script-url both inject into the live page.
       const host = document.createElement('div');
       host.id = 'inlineHost';
+      stage.classList.add('inline-mode');
+      if (embed.mode === 'inline') {
+        const hint = document.createElement('p');
+        hint.textContent = 'Chat-i hapet nga ikona poshte djathtas. Nese nuk shfaqet, domeni i kesaj faqeje nuk eshte i lejuar ne Genesys.';
+        host.appendChild(hint);
+      }
       stage.appendChild(host);
 
       if (embed.mode === 'script-url') {
@@ -214,6 +323,79 @@
     }
 
     load();
+
+    // --- feedback ---------------------------------------------------------
+    const fbForm = document.getElementById('fbForm');
+    const fbStatus = document.getElementById('fbStatus');
+    const fbList = document.getElementById('fbList');
+    const fbTester = document.getElementById('fbTester');
+    const VERDICT_LABELS = {
+      'correct': 'E sakte', 'partly': 'Pjeserisht', 'wrong': 'E gabuar',
+      'handover-ok': 'Handover OK', 'handover-missing': 'Pa handover', 'other': 'Tjeter',
+    };
+
+    try { fbTester.value = localStorage.getItem('fbTester') || ''; } catch {}
+
+    function el(tag, cls, text) {
+      const n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text) n.textContent = text;
+      return n;
+    }
+
+    async function loadFeedback() {
+      const resp = await fetch('/api/feedback');
+      if (!resp.ok) return;
+      const items = await resp.json();
+      fbList.innerHTML = '';
+      if (!items.length) {
+        fbList.appendChild(el('p', null, 'Asnje raport ende.'));
+        return;
+      }
+      items.slice(0, 30).forEach((f) => {
+        const item = el('div', 'fb-item');
+        const top = el('div', 'top');
+        top.appendChild(el('span', 'tag ' + f.verdict, VERDICT_LABELS[f.verdict] || f.verdict));
+        top.appendChild(el('span', null, new Date(f.at).toLocaleString() + (f.tester ? ' · ' + f.tester : '')));
+        item.appendChild(top);
+        if (f.question) item.appendChild(el('div', 'q', f.question));
+        if (f.answer) item.appendChild(el('div', 'a', f.answer));
+        if (f.note) item.appendChild(el('div', 'n', 'Shenim: ' + f.note));
+        fbList.appendChild(item);
+      });
+    }
+
+    fbForm.onsubmit = async (ev) => {
+      ev.preventDefault();
+      fbStatus.style.color = '#555';
+      fbStatus.textContent = 'Duke ruajtur...';
+      const body = {
+        tester: fbTester.value,
+        verdict: document.getElementById('fbVerdict').value,
+        question: document.getElementById('fbQuestion').value,
+        answer: document.getElementById('fbAnswer').value,
+        note: document.getElementById('fbNote').value,
+      };
+      try { localStorage.setItem('fbTester', body.tester); } catch {}
+      const resp = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (resp.status === 401) { location.href = '/login'; return; }
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        fbStatus.style.color = '#b3261e';
+        fbStatus.textContent = data.error || 'Nuk u ruajt.';
+        return;
+      }
+      ['fbQuestion', 'fbAnswer', 'fbNote'].forEach((id) => { document.getElementById(id).value = ''; });
+      fbStatus.style.color = '#1e7b3a';
+      fbStatus.textContent = 'U ruajt. Faleminderit!';
+      loadFeedback();
+    };
+
+    loadFeedback();
   </script>
 </body>
 </html>
